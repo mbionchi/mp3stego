@@ -33,7 +33,15 @@ static int current_frame = 0;
 /* not so sure about this one either */
 #include "print_frame.h"
 
-static void dummy(void *meow){}
+static void free_frame(void *frame) {
+//    free(frame->main_data->gr[0].ch); // ...
+//    free(frame->main_data->gr[1].ch); //will be used in future
+//    free(frame->main_data);           // ...
+    free(((mp3_frame_t*)frame)->side_info->ch);
+    free(((mp3_frame_t*)frame)->side_info);
+    free(((mp3_frame_t*)frame)->header);
+    free(frame);
+}
 
 /*
  * mp3_read_frames(FILE*,mp3_frame_t**):  reads all frames from a given file,
@@ -62,7 +70,7 @@ int mp3_read_frames(FILE *fp, mp3_frame_t ***frames) {
         i++;
         iter = iter->next;
     }
-    list_free(first, &dummy);
+    list_free(first, &free_frame);
     return i;
 }
 
@@ -81,21 +89,21 @@ mp3_frame_t *mp3_get_frame(FILE *fp, mp3_frame_t *prev) {
         if (frame->side_info) {
             frame->main_data = mp3_get_main_data(fp, prev?prev->header:NULL, prev?prev->side_info:NULL, frame->header, frame->side_info);
             if (!frame->main_data) {
-                free(frame->header);
-                free(frame->side_info);
-                free(frame);
+                fprintf(stderr, "EAT ME");
+                print_head(frame);
+                fclose(stdout);
+                free_frame(frame);
                 frame = NULL;
             } else {
                 print_frame_info(frame, current_frame);
                 current_frame++;
             }
         } else {
-            free(frame->header);
-            free(frame);
+            free_frame(frame);
             frame = NULL;
         }
     } else {
-        free(frame);
+        free_frame(frame);
         frame = NULL;
     }
     return frame;
@@ -138,7 +146,7 @@ mp3_header_t *mp3_get_header(FILE *fp) {
     if (found_eof) {
         free(head);
         head = NULL;
-    } else if (head->sampling_freq >= 3) {
+    } else if (head->sampling_freq >= 3 || head->bitrate >= 15) {
         free(head);
         /* good heavens this is crap */
         return mp3_get_header(fp);
@@ -157,14 +165,16 @@ mp3_side_info_t *mp3_get_side_info(FILE *fp, mp3_header_t *head) {
         n_ch = 1;
         side_info_bytes = malloc(17*sizeof(uint8_t));
         n_read = fread(side_info_bytes, 1, 17, fp);
-        if ( n_read != 17 )
+        if (n_read != 17) {
             return NULL;
+        }
     } else {
         n_ch = 2;
         side_info_bytes = malloc(32*sizeof(uint8_t));
         n_read = fread(side_info_bytes, 1, 32, fp);
-        if ( n_read != 32 )
+        if (n_read != 32) {
             return NULL;
+        }
     }
     bss = bss_init(side_info_bytes, n_read, 0);
     si->ch = malloc(n_ch*sizeof(si_ch_t));
@@ -214,6 +224,7 @@ mp3_side_info_t *mp3_get_side_info(FILE *fp, mp3_header_t *head) {
 
 //mp3_main_data_t *mp3_get_main_data(FILE *fp, mp3_header_t *head_prev, mp3_side_info_t *si_prev, mp3_header_t *head_this, mp3_side_info_t *si_this, mp3_header_t *head_next) {
 // TODO: fix this to return main_data_t, not the byte array thingy
+// TODO: that is, decode the byte array we get and produce main_data
 array_t *mp3_get_main_data(FILE *fp, mp3_header_t *head_prev, mp3_side_info_t *si_prev, mp3_header_t *head_this, mp3_side_info_t *si_this) {
 
 #ifdef MAINDATA
@@ -230,15 +241,15 @@ array_t *mp3_get_main_data(FILE *fp, mp3_header_t *head_prev, mp3_side_info_t *s
     long start_at, end_at;
     mp3_header_t *head_next;
     if (!head_prev) {
-        start_at = head_this->pos+4+(n_ch==1?17:32)+1;
+        start_at = head_this->pos+4+(n_ch==1?17:32);
     } else {
         if (si_prev->main_data_end==0) {
-            start_at = head_this->pos+4+(n_ch==1?17:32)+1;
+            start_at = head_this->pos+4+(n_ch==1?17:32);
         } else {
             start_at = head_this->pos-si_prev->main_data_end+1;
         }
     }
-    fseek(fp, start_at, SEEK_SET);
+    fseek(fp, head_this->pos+4L, SEEK_SET);
     head_next = mp3_get_header(fp);
     if (head_next) {
         end_at = head_next->pos-si_this->main_data_end;
@@ -256,6 +267,7 @@ array_t *mp3_get_main_data(FILE *fp, mp3_header_t *head_prev, mp3_side_info_t *s
     if (!md_buffer) {
         perror("\nTROUBLE");
         fprintf(stderr, "TROUBLE: end_at - start_at == %ld\n", end_at-start_at);
+        return NULL;
     }
     n_read = fread(md_buffer, 1, end_at-start_at, fp);
     array_t *meow = malloc(sizeof(array_t));

@@ -4,5 +4,6 @@
 #include "mp3_frame.h"
 
 void print_frame_info(mp3_frame_t*, int);
+void print_head(mp3_frame_t*);
 
 #endif

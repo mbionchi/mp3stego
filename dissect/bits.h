@@ -22,10 +22,7 @@
 #define MP3STEGO_BITS_H
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-
-/* BITSTRINGS AND STREAMS */
 
 struct bitstringstream {
     uint8_t *bytes;
@@ -36,25 +33,8 @@ typedef struct bitstringstream bitstringstream_t;
 
 bitstringstream_t *bss_init(uint8_t *, size_t, uint8_t);
 int getbit(bitstringstream_t *);
-int getnbits(bitstringstream_t *, unsigned int);
-
-/* FILE BIT STREAMS */
-
-struct bitstream {
-    FILE *fs;
-    const char *mode;
-    int8_t pos;
-    int ch;
-    void (*check_bs)(struct bitstream *bs);
-};
-typedef struct bitstream bitstream_t;
-
-bitstream_t *bsopen(char *, char *);
-int bsclose(bitstream_t *);
-int bsgetb(bitstream_t *);
-int bsputb(int, bitstream_t *);
-
-/* this function writes size_t RIGHTMOST bits into a bitstream */
-size_t bswrite(int, size_t, bitstream_t *);
+int getnbits(bitstringstream_t *, size_t);
+void putbit(uint8_t, bitstringstream_t*);
+void putnbits(int, size_t, bitstringstream_t*);
 
 #endif
