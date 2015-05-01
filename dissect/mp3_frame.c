@@ -180,14 +180,13 @@ mp3_side_info_t *mp3_get_side_info(FILE *fp, mp3_header_t *head) {
     si->ch = malloc(n_ch*sizeof(si_ch_t));
     si->main_data_end = getnbits(bss, 9);
     si->private_bits = n_ch==1 ? getnbits(bss, 5) : getnbits(bss, 3);
-    /* iterating on channels */
     for (i=0; i<n_ch; i++) {
-        /* iterating on scfsi bands */
         for (j=0; j<4; j++) {
             si->ch[i].scfsi[j] = getbit(bss);
         }
-        /* iterating on granules */
-        for (j=0; j<2; j++) {
+    }
+    for (j=0; j<2; j++) {
+        for (i=0; i<n_ch; i++) {
             si->ch[i].gr[j].part2_3_length = getnbits(bss, 12);
             si->ch[i].gr[j].big_values = getnbits(bss, 9);
             si->ch[i].gr[j].global_gain = getnbits(bss, 8);
