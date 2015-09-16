@@ -1,2 +1,6 @@
 mp3stego:
 =========
+
+a tool for hiding data in mp3 files.
+
+WARNING: it's not secure at all!
