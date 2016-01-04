@@ -32,3 +32,20 @@ int parse_opts(int argc, char **argv, options_t *opts) {
     }
     return rv;
 }
+
+int get_mapping(size_t first_s, int* first, size_t map_s, int* map) {
+    int i = 0;
+    for (i = 0; i < map_s; i++) {
+        map[i] = -1;
+    }
+
+    for (i = 0; i < first_s; i++) {
+        int r = rand() % first_s;
+        while (map[r] != -1) {
+            r = rand() % first_s;
+        }
+        map[r] = i;
+    }
+
+    return composite_s;
+} 
