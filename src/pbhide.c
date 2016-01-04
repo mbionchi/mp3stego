@@ -53,6 +53,19 @@ int main(int argc, char **argv) {
                     rv = info(opts);
                     break;
             }
+            switch (rv) {
+                case SUCCESS:
+                    break;
+                case NO_SPACE:
+                    fprintf(stderr, "Not enough capacity in mp3 file for data.\n");
+                    break;
+                case NOT_MP3:
+                    fprintf(stderr, "Not an mp3 file.\n");
+                    break;
+                default:
+                    fprintf(stderr, "Unknown error.");
+                    break;
+            }
         }
         fclose(opts->stego_fp);
         fclose(opts->data_fp);

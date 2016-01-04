@@ -6,6 +6,9 @@
 enum action {EMBED, EXTRACT, INFO};
 typedef enum action action_t;
 
+enum error_type {SUCCESS, NO_SPACE, NOT_MP3};
+typedef enum error_type error_type_t;
+
 struct options {
     FILE *stego_fp;
     FILE *data_fp;
