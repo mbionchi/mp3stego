@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
             action = INFO;
         } else if (!strcmp(argv[1], "help")) {
             print_help(stdout);
-            rv = 0;
+            exit(0);
         } else {
             fprintf(stderr, "%s: invalid action: %s\n", argv[0], argv[1]);
             print_usage(stderr);
@@ -54,6 +54,8 @@ int main(int argc, char **argv) {
                     break;
             }
         }
+        fclose(opts->stego_fp);
+        fclose(opts->data_fp);
         free(opts);
     }
     return rv;

@@ -24,7 +24,7 @@ int parse_opts(int argc, char **argv, options_t *opts) {
         }
     }
     if (optind < argc) {
-        opts->stego_fp = fopen(argv[optind], opts->action==EMBED?"w":"r");
+        opts->stego_fp = fopen(argv[optind], opts->action==EMBED?"r+":"r");
         optind++;
     }
     if (optind < argc) {
