@@ -19,4 +19,6 @@ typedef struct options options_t;
 
 int parse_opts(int, char**, options_t*);
 
+int get_mapping(size_t, int*, size_t, int*);
+
 #endif
