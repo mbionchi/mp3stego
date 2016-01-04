@@ -47,5 +47,5 @@ int get_mapping(size_t first_s, int* first, size_t map_s, int* map) {
         map[r] = i;
     }
 
-    return composite_s;
+    return map_s;
 } 
